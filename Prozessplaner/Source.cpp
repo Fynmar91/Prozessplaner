@@ -8,6 +8,7 @@
 #include <vector>			//Vektoren
 #include <stdlib.h>			//system("CLS") Konsole löschen
 #include "Process.h"		//Klasse Process
+#include <functional>
 using namespace std;
 
 const int SIM_TIME = 30;				//Länge der Simulation
@@ -15,60 +16,61 @@ const double SIM_INTERV = 0.001;		//Simulationsintervall
 const int RR_ONE = 1;					//Round Robin One Zeitscheibe
 const int RR_TWO = 2;					//Round Robin Two Zeitscheibe
 
-void getProcess(vector<Process> &vector_p, size_t i);								//Prozesse lesen
-void totalDuration(vector<Process> &vector_p, size_t processCount);					//Länge aller Prozesse zurückgeben
-//void bubbleSort(vector<Process> &vector_p, size_t processCount, double(*fp));
-
-void firstComeFirstServe(vector<Process> &vector_p, size_t processCount);			//First Come First Serve Algorithmus
-void shortestJobFirst(vector<Process> &vector_p, size_t processCount);				//Shortest Job First Algorithmus
-void shortestRemainingTime(vector<Process> &vector_p, size_t processCount);			//Shortest Remaining Time Algorithmus
-void roundRobinOne(vector<Process> &vector_p, size_t processCount);					//Round Robing mit Zeitscheibe von 1
-void roundRobinTwo(vector<Process> &vector_p, size_t processCount);					//Round Robing mit Zeitscheibe von 2
+void getProcess(vector<Process> &vector_p, size_t i);												//Prozesse lesen
+void totalDuration(vector<Process> &vector_p, size_t processCount);									//Länge aller Prozesse zurückgeben
+void bubbleSort(vector<Process> &vector_p, size_t processCount, const function<double(int)>& func);
+void firstComeFirstServe(vector<Process> &vector_p, size_t processCount);							//First Come First Serve Algorithmus
+void shortestJobFirst(vector<Process> &vector_p, size_t processCount);								//Shortest Job First Algorithmus
+void shortestRemainingTime(vector<Process> &vector_p, size_t processCount);							//Shortest Remaining Time Algorithmus
+void roundRobinOne(vector<Process> &vector_p, size_t processCount);									//Round Robing mit Zeitscheibe von 1
+void roundRobinTwo(vector<Process> &vector_p, size_t processCount);									//Round Robing mit Zeitscheibe von 2
 
 int main()
 {
 	while (1)
 	{
-		vector<Process> vector_p;
-		size_t total_p, algorythm;		
+		vector<Process> processes_vector;
+		size_t processes_total, algorythm;		
 
 		cout << setprecision(4) << "Wie viele Prozesse? ";
-		cin >> total_p;
+		cin >> processes_total;
+		processes_vector.reserve(processes_total);
+
 		cout << "1: First Come First Serve" << endl << "2: Shortest Job First " << endl << "3: Shortest Remaining Time " << endl << "4: Round Robin (1)" << endl << "5: Round Robin (2)" << endl;
 		cin >> algorythm;
 
-		for (size_t i = 0; i < total_p; i++)
+		for (size_t i = 0; i < processes_total; i++)
 		{
 			cout << "Prozess eingeben (Eintrittszeit Prozessdauer Prioritaet)" << endl;
-			getProcess(vector_p, i);
+			getProcess(processes_vector, i);
 		}
 		system("CLS");
 		cout << "Prozess\tEintrittszeit\tProzessdauer\tPrioritaet" << endl;
 
-		for (size_t i = 0; i < total_p; i++)
+		for (size_t i = 0; i < processes_total; i++)
 		{
-			cout << vector_p[i].getName() << "\t" << vector_p[i].getEntryTime() << "\t\t" << vector_p[i].getDuration() << "\t\t" << vector_p[i].getPriority() << endl;
+			cout << processes_vector[i].getName() << "\t" << processes_vector[i].getEntryTime() << "\t\t" << processes_vector[i].getDuration() << "\t\t" << processes_vector[i].getPriority() << endl;
 		}
 		switch (algorythm)
 		{
 		case 1:
-			firstComeFirstServe(vector_p, total_p);
+			firstComeFirstServe(processes_vector, processes_total);
 			break;
 
 		case 2:
-			shortestJobFirst(vector_p, total_p);
+			shortestJobFirst(processes_vector, processes_total);
 			break;
 
 		case 3:
-			shortestRemainingTime(vector_p, total_p);
+			shortestRemainingTime(processes_vector, processes_total);
 			break;
 
 		case 4:
-			roundRobinOne(vector_p, total_p);
+			roundRobinOne(processes_vector, processes_total);
 			break;
 
 		case 5:
-			roundRobinTwo(vector_p, total_p);
+			roundRobinTwo(processes_vector, processes_total);
 			break;
 		}
 	}
@@ -95,44 +97,15 @@ void totalDuration(vector<Process> &vector_p, size_t processCount)		//Länge alle
 	cout << totalDuration << endl;
 }
 
-//void bubbleSort(vector<Process> &vector_p, size_t processCount, double(*fp))
-//{
-//	Process temp_p;
-//
-//	for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Eintrittszeit
-//	{
-//		for (size_t j = 0; j < processCount - 1; j++)
-//		{
-//			if (vector_p[j].fp() > vector_p[j + 1].fp())
-//			{
-//				temp_p = vector_p[j];
-//				vector_p[j] = vector_p[j + 1];
-//				vector_p[j + 1] = temp_p;
-//			}
-//			else
-//			{
-//				if (vector_p[j].fp() == vector_p[j + 1].fp() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
-//				{
-//					temp_p = vector_p[j];
-//					vector_p[j] = vector_p[j + 1];
-//					vector_p[j + 1] = temp_p;
-//				}
-//			}
-//		}
-//	}
-//}
-
-void firstComeFirstServe(vector<Process> &vector_p, size_t processCount)		//First Come First Serve Algorithmus
+void bubbleSort(vector<Process> &vector_p, size_t processCount, const function<double(int)>& func)
 {
-	//bubbleSort(vector_p, processCount, vector_p[].getEntryTime());
-
 	Process temp_p;
 
-	for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Eintrittszeit
+	for (size_t i = 0; i < processCount - 1; i++)
 	{
 		for (size_t j = 0; j < processCount - 1; j++)
 		{
-			if (vector_p[j].getEntryTime() > vector_p[j + 1].getEntryTime())
+			if (func(j) > func(j + 1))
 			{
 				temp_p = vector_p[j];
 				vector_p[j] = vector_p[j + 1];
@@ -140,7 +113,7 @@ void firstComeFirstServe(vector<Process> &vector_p, size_t processCount)		//Firs
 			}
 			else
 			{
-				if (vector_p[j].getEntryTime() == vector_p[j + 1].getEntryTime() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
+				if (func(j) == func(j + 1) && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
 				{
 					temp_p = vector_p[j];
 					vector_p[j] = vector_p[j + 1];
@@ -149,6 +122,56 @@ void firstComeFirstServe(vector<Process> &vector_p, size_t processCount)		//Firs
 			}
 		}
 	}
+	for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Wartezeit
+	{
+		for (size_t j = 0; j < processCount - 1; j++)
+		{
+			if (vector_p[j].getWaitTime() < vector_p[j + 1].getWaitTime())
+			{
+				temp_p = vector_p[j];
+				vector_p[j] = vector_p[j + 1];
+				vector_p[j + 1] = temp_p;
+			}
+			else
+			{
+				if (vector_p[j].getWaitTime() == vector_p[j + 1].getWaitTime() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
+				{
+					temp_p = vector_p[j];
+					vector_p[j] = vector_p[j + 1];
+					vector_p[j + 1] = temp_p;
+				}
+			}
+		}
+	}
+}
+
+void firstComeFirstServe(vector<Process> &vector_p, size_t processCount)		//First Come First Serve Algorithmus
+{
+	auto lambda = [&](int value) ->double  {return vector_p[value].getEntryTime(); };
+	bubbleSort(vector_p, processCount, lambda);
+	//Process temp_p;
+
+	//for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Eintrittszeit
+	//{
+	//	for (size_t j = 0; j < processCount - 1; j++)
+	//	{
+	//		if (vector_p[j].getEntryTime() > vector_p[j + 1].getEntryTime())
+	//		{
+	//			temp_p = vector_p[j];
+	//			vector_p[j] = vector_p[j + 1];
+	//			vector_p[j + 1] = temp_p;
+	//		}
+	//		else
+	//		{
+	//			if (vector_p[j].getEntryTime() == vector_p[j + 1].getEntryTime() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
+	//			{
+	//				temp_p = vector_p[j];
+	//				vector_p[j] = vector_p[j + 1];
+	//				vector_p[j + 1] = temp_p;
+	//			}
+	//		}
+	//	}
+	//}
 	cout << endl;
 	for (size_t i = 0; i < processCount; i++)		//Ausgabe
 	{
@@ -159,31 +182,33 @@ void firstComeFirstServe(vector<Process> &vector_p, size_t processCount)		//Firs
 
 void shortestJobFirst(vector<Process> &vector_p, size_t processCount)		//Shortest Job First Algorithmus
 {
-	Process temp_p;
-	double time = 0;
-
-	for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Prozessdauer
-	{
-		for (size_t j = 0; j < processCount - 1; j++)
-		{
-			if (vector_p[j].getDuration() > vector_p[j + 1].getDuration())
-			{
-				temp_p = vector_p[j];
-				vector_p[j] = vector_p[j + 1];
-				vector_p[j + 1] = temp_p;
-			}
-			else
-			{
-				if (vector_p[j].getDuration() == vector_p[j + 1].getDuration() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
-				{
-					temp_p = vector_p[j];
-					vector_p[j] = vector_p[j + 1];
-					vector_p[j + 1] = temp_p;
-				}
-			}
-		}
-	}
+	auto lambda = [&](int value) ->double {return vector_p[value].getDuration(); };
+	bubbleSort(vector_p, processCount, lambda);
+	//Process temp_p;
+	
+	//for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Prozessdauer
+	//{
+	//	for (size_t j = 0; j < processCount - 1; j++)
+	//	{
+	//		if (vector_p[j].getDuration() > vector_p[j + 1].getDuration())
+	//		{
+	//			temp_p = vector_p[j];
+	//			vector_p[j] = vector_p[j + 1];
+	//			vector_p[j + 1] = temp_p;
+	//		}
+	//		else
+	//		{
+	//			if (vector_p[j].getDuration() == vector_p[j + 1].getDuration() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
+	//			{
+	//				temp_p = vector_p[j];
+	//				vector_p[j] = vector_p[j + 1];
+	//				vector_p[j + 1] = temp_p;
+	//			}
+	//		}
+	//	}
+	//}
 	cout << endl;
+	double time = 0;
 	while (time <= SIM_TIME)
 	{		
 		for (size_t i = 0; i < processCount; i++)
@@ -207,33 +232,34 @@ void shortestJobFirst(vector<Process> &vector_p, size_t processCount)		//Shortes
 
 void shortestRemainingTime(vector<Process> &vector_p, size_t processCount)		//Shortest Remaining Time Algorithmus
 {
-	Process temp_p;
+	auto lambda = [&](int value) ->double {return vector_p[value].getRemainingTime(); };
 	double time = 0;
-	char active_name = 1;
-
 	while (time <= SIM_TIME)
-	{
-		for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach verbleibender Zeit
-		{
-			for (size_t j = 0; j < processCount - 1; j++)
-			{
-				if (vector_p[j].getRemainingTime() > vector_p[j + 1].getRemainingTime())
-				{
-					temp_p = vector_p[j];
-					vector_p[j] = vector_p[j + 1];
-					vector_p[j + 1] = temp_p;
-				}
-				else
-				{
-					if (vector_p[j].getRemainingTime() == vector_p[j + 1].getRemainingTime() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
-					{
-						temp_p = vector_p[j];
-						vector_p[j] = vector_p[j + 1];
-						vector_p[j + 1] = temp_p;
-					}
-				}
-			}
-		}
+	{		
+		bubbleSort(vector_p, processCount, lambda);
+		//Process temp_p;
+		//for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach verbleibender Zeit
+		//{
+		//	for (size_t j = 0; j < processCount - 1; j++)
+		//	{
+		//		if (vector_p[j].getRemainingTime() > vector_p[j + 1].getRemainingTime())
+		//		{
+		//			temp_p = vector_p[j];
+		//			vector_p[j] = vector_p[j + 1];
+		//			vector_p[j + 1] = temp_p;
+		//		}
+		//		else
+		//		{
+		//			if (vector_p[j].getRemainingTime() == vector_p[j + 1].getRemainingTime() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
+		//			{
+		//				temp_p = vector_p[j];
+		//				vector_p[j] = vector_p[j + 1];
+		//				vector_p[j + 1] = temp_p;
+		//			}
+		//		}
+		//	}
+		//}		
+		char active_name = 1;
 		for (size_t i = 0; i < processCount; i++)
 		{
 			if (vector_p[i].getEntryTime() <= time && vector_p[i].getRemainingTime() > 0)		//Kontrolle der Eintrittszeit
@@ -266,33 +292,34 @@ void shortestRemainingTime(vector<Process> &vector_p, size_t processCount)		//Sh
 
 void roundRobinOne(vector<Process> &vector_p, size_t processCount)		//Round Robing mit Zeitscheibe von 1
 {
-	Process temp_p;
+	auto lambda = [&](int value) ->double {return vector_p[value].getWaitTime(); };
 	double time = 0;
-	char active_name = 1;
-
 	while (time <= SIM_TIME)
-	{
-		for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Wartezeit
-		{
-			for (size_t j = 0; j < processCount - 1; j++)
-			{
-				if (vector_p[j].getWaitTime() < vector_p[j + 1].getWaitTime())
-				{
-					temp_p = vector_p[j];
-					vector_p[j] = vector_p[j + 1];
-					vector_p[j + 1] = temp_p;
-				}
-				else
-				{
-					if (vector_p[j].getWaitTime() == vector_p[j + 1].getWaitTime() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
-					{
-						temp_p = vector_p[j];
-						vector_p[j] = vector_p[j + 1];
-						vector_p[j + 1] = temp_p;
-					}
-				}
-			}
-		}
+	{		
+		bubbleSort(vector_p, processCount, lambda);
+		//Process temp_p;
+		//for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Wartezeit
+		//{
+		//	for (size_t j = 0; j < processCount - 1; j++)
+		//	{
+		//		if (vector_p[j].getWaitTime() < vector_p[j + 1].getWaitTime())
+		//		{
+		//			temp_p = vector_p[j];
+		//			vector_p[j] = vector_p[j + 1];
+		//			vector_p[j + 1] = temp_p;
+		//		}
+		//		else
+		//		{
+		//			if (vector_p[j].getWaitTime() == vector_p[j + 1].getWaitTime() && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
+		//			{
+		//				temp_p = vector_p[j];
+		//				vector_p[j] = vector_p[j + 1];
+		//				vector_p[j + 1] = temp_p;
+		//			}
+		//		}
+		//	}
+		//}
+		char active_name = 1;
 		for (size_t i = 0; i < processCount; i++)
 		{
 			if (vector_p[i].getEntryTime() <= time && vector_p[i].getRemainingTime() > 0)		//Kontrolle der Eintrittszeit
@@ -355,13 +382,13 @@ void roundRobinOne(vector<Process> &vector_p, size_t processCount)		//Round Robi
 }
 
 void roundRobinTwo(vector<Process> &vector_p, size_t processCount)		//Round Robing mit Zeitscheibe von 2
-{
-	Process temp_p;
+{	
 	double time = 0;
-	char active_name = 1;
-
 	while (time <= SIM_TIME)
 	{
+		auto lambda = [&](int value) ->double {return vector_p[value].getWaitTime(); };
+		bubbleSort(vector_p, processCount, lambda);
+		Process temp_p;
 		for (size_t i = 0; i < processCount - 1; i++)		//Bubble Sort nach Wartezeit
 		{
 			for (size_t j = 0; j < processCount - 1; j++)
@@ -383,7 +410,7 @@ void roundRobinTwo(vector<Process> &vector_p, size_t processCount)		//Round Robi
 				}
 			}
 		}
-
+		char active_name = 1;
 		for (size_t i = 0; i < processCount; i++)
 		{
 			if (vector_p[i].getEntryTime() <= time && vector_p[i].getRemainingTime() > 0)		//Kontrolle der Eintrittszeit

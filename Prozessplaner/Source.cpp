@@ -101,54 +101,30 @@ void bubbleSort(vector<Process> &vector_p, size_t processCount, const function<d
 {
 	Process temp_p;
 
-	if (lessthan == true)
+	for (size_t i = 0; i < processCount - 1; i++)
 	{
-		for (size_t i = 0; i < processCount - 1; i++)
+		for (size_t j = 0; j < processCount - 1; j++)
 		{
-			for (size_t j = 0; j < processCount - 1; j++)
+			if (lessthan == true && func(j) > func(j + 1))
 			{
-				if (func(j) > func(j + 1))
-				{
-					temp_p = vector_p[j];
-					vector_p[j] = vector_p[j + 1];
-					vector_p[j + 1] = temp_p;
-				}
-				else
-				{
-					if (func(j) == func(j + 1) && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
-					{
-						temp_p = vector_p[j];
-						vector_p[j] = vector_p[j + 1];
-						vector_p[j + 1] = temp_p;
-					}
-				}
+				temp_p = vector_p[j];
+				vector_p[j] = vector_p[j + 1];
+				vector_p[j + 1] = temp_p;
+			}
+			else if (lessthan == false && func(j) < func(j + 1))
+			{
+				temp_p = vector_p[j];
+				vector_p[j] = vector_p[j + 1];
+				vector_p[j + 1] = temp_p;
+			}
+			else if (func(j) == func(j + 1) && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
+			{
+				temp_p = vector_p[j];
+				vector_p[j] = vector_p[j + 1];
+				vector_p[j + 1] = temp_p;				
 			}
 		}
 	}
-	else
-	{
-		for (size_t i = 0; i < processCount - 1; i++)
-		{
-			for (size_t j = 0; j < processCount - 1; j++)
-			{
-				if (func(j) < func(j + 1))
-				{
-					temp_p = vector_p[j];
-					vector_p[j] = vector_p[j + 1];
-					vector_p[j + 1] = temp_p;
-				}
-				else
-				{
-					if (func(j) == func(j + 1) && vector_p[j].getPriority() < vector_p[j + 1].getPriority())
-					{
-						temp_p = vector_p[j];
-						vector_p[j] = vector_p[j + 1];
-						vector_p[j + 1] = temp_p;
-					}
-				}
-			}
-		}
-	}	
 }
 
 void firstComeFirstServe(vector<Process> &vector_p, size_t processCount)		//First Come First Serve Algorithmus
